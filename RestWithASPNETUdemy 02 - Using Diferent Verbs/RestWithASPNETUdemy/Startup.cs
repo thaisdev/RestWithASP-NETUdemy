@@ -13,8 +13,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using RestWithASPNETUdemy.Model.Context;
-using RestWithASPNETUdemy.Services;
-using RestWithASPNETUdemy.Services.Implementattions;
+using RestWithASPNETUdemy.Business;
+using RestWithASPNETUdemy.Business.Implementattions;
+using RestWithASPNETUdemy.Repository;
+using RestWithASPNETUdemy.Repository.Implementattions;
 
 namespace RestWithASPNETUdemy
 {
@@ -38,7 +40,17 @@ namespace RestWithASPNETUdemy
             services.AddApiVersioning();
 
             // Dependency Injection
-            services.AddScoped<IPersonService, PersonServiceImpl>();
+            #region Business
+
+            services.AddScoped<IPersonBusiness, PersonBusinessImpl>();
+
+            #endregion
+
+            #region Repository
+
+            services.AddScoped<IPersonRepository, PersonRepositoryImpl>();
+
+            #endregion
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
