@@ -1,11 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using RestWithASPNETUdemy.Model.Base;
-
-namespace RestWithASPNETUdemy.Model
+﻿namespace RestWithASPNETUdemy.Model
 {
-	[Table("persons")]
-    public class Person : BaseEntity
+    public class PersonVO
     {
+        public long? Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
