@@ -13,6 +13,8 @@ using RestWithASPNETUdemy.Business;
 using RestWithASPNETUdemy.Business.Generic;
 using RestWithASPNETUdemy.Business.Implementattions;
 using Microsoft.Net.Http.Headers;
+using Tapioca.HATEOAS;
+using RestWithASPNETUdemy.Hypermedia;
 
 namespace RestWithASPNETUdemy
 {
@@ -65,6 +67,10 @@ namespace RestWithASPNETUdemy
                 options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
             }).AddXmlSerializerFormatters();
 
+            var filterOptions = new HyperMediaFilterOptions();
+            filterOptions.ObjectContentResponseEnricherList.Add(new PersonEnricher());
+            services.AddSingleton(filterOptions);
+
 			services.AddApiVersioning(option => option.ReportApiVersions = true);
 
             //Dependency Injection Business
@@ -82,7 +88,12 @@ namespace RestWithASPNETUdemy
             loggerFactory.AddConsole(_configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseMvc();
+            app.UseMvc(routes => {
+                routes.MapRoute(
+                    name: "DefaultApi",
+                    template: "{controller=Values}/{id?}"
+                );
+            });
         }
     }
 }
