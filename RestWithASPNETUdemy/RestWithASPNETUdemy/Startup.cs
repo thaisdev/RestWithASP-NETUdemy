@@ -15,6 +15,8 @@ using RestWithASPNETUdemy.Business.Implementattions;
 using Microsoft.Net.Http.Headers;
 using Tapioca.HATEOAS;
 using RestWithASPNETUdemy.Hypermedia;
+using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace RestWithASPNETUdemy
 {
@@ -73,6 +75,16 @@ namespace RestWithASPNETUdemy
 
 			services.AddApiVersioning(option => option.ReportApiVersions = true);
 
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1",
+                    new Info
+                    {
+                        Title = "RESTful API With ASP.NET Core 2.0",
+                        Version = "v1"
+                    });
+            });
+
             //Dependency Injection Business
             services.AddScoped<IPersonBusiness, PersonBusinessImpl>();
             services.AddScoped<IBookBusiness, BookBusinessImpl>();
@@ -88,6 +100,16 @@ namespace RestWithASPNETUdemy
             loggerFactory.AddConsole(_configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
+
+            var option = new RewriteOptions();
+            option.AddRedirect("^$", "swagger");
+            app.UseRewriter(option);
+                
             app.UseMvc(routes => {
                 routes.MapRoute(
                     name: "DefaultApi",
