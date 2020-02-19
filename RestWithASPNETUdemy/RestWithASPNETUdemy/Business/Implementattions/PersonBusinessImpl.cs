@@ -8,13 +8,13 @@ namespace RestWithASPNETUdemy.Business.Implementattions
     public class PersonBusinessImpl : IPersonBusiness
     {
 
-        private IRepository<Person> _repository;
+        private readonly IRepository<Person> _repository;
         private readonly PersonConverter _converter;
 
         public PersonBusinessImpl(IRepository<Person> repository)
         {
             _repository = repository;
-            _converter = _converter;
+            _converter = new PersonConverter();
         }
 
         public PersonVO Create(PersonVO person)

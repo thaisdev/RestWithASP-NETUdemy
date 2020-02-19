@@ -11,10 +11,10 @@ namespace RestWithASPNETUdemy.Business.Implementattions
         private IRepository<Book> _repository;
         private readonly BookConverter _converter;
 
-        public BookBusinessImpl(IRepository<Book> repository, BookConverter converter)
+        public BookBusinessImpl(IRepository<Book> repository)
         {
             _repository = repository;
-            _converter = converter;
+            _converter = new BookConverter();
         }
 
         public BookVO Create(BookVO book)

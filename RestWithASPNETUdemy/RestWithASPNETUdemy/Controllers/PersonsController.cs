@@ -8,7 +8,7 @@ namespace RestWithASPNETUdemy.Controllers
     [Route("api/[controller]/v{version:apiVersion}")]
     public class PersonsController : Controller
     {
-        private IPersonBusiness _personBusiness;
+        private readonly IPersonBusiness _personBusiness;
 
         public PersonsController(IPersonBusiness personBusiness)
         {
