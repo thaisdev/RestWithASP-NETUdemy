@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,8 @@ using Tapioca.HATEOAS;
 using RestWithASPNETUdemy.Hypermedia;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.Extensions.Options;
+using RestWithASPNETUdemy.Security.Configuration;
 
 namespace RestWithASPNETUdemy
 {
@@ -37,30 +40,65 @@ namespace RestWithASPNETUdemy
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            #region Migrations
+
             var connectionString = _configuration["MySqlConnection:MySqlConnectionString"];
             services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
 
-            if (_environment.IsDevelopment())
+            ExecuteMigrations(connectionString);
+
+            #endregion
+
+            #region Security
+
+            var signingConfigurations = new SigningConfigurations();
+            services.AddSingleton(signingConfigurations);
+
+            var tokenConfigurations = new TokenConfiguration();
+
+            new ConfigureFromConfigurationOptions<TokenConfiguration>(
+                _configuration.GetSection("TokenConfigurations")
+            )
+            .Configure(tokenConfigurations);
+
+            services.AddSingleton(tokenConfigurations);
+
+
+            services.AddAuthentication(authOptions =>
             {
-                try
-                {
-                    var evolveConnection = new MySql.Data.MySqlClient.MySqlConnection(connectionString);
+                authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(bearerOptions =>
+            {
+                var paramsValidation = bearerOptions.TokenValidationParameters;
+                paramsValidation.IssuerSigningKey = signingConfigurations.Key;
+                paramsValidation.ValidAudience = tokenConfigurations.Audience;
+                paramsValidation.ValidIssuer = tokenConfigurations.Issuer;
 
-                    var evolve = new Evolve.Evolve("evolve.json", evolveConnection, msg => _logger.LogInformation(msg))
-                    {
-                        Locations = new List<string> { "db/migrations" },
-                        IsEraseDisabled = true,
-                    };
+                // Validates the signing of a received token
+                paramsValidation.ValidateIssuerSigningKey = true;
 
-                    evolve.Migrate();
+                // Checks if a received token is still valid
+                paramsValidation.ValidateLifetime = true;
 
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogCritical("Database migration failed.", ex);
-                    throw;
-                }
-            }
+                // Tolerance time for the expiration of a token (used in case
+                // of time synchronization problems between different
+                // computers involved in the communication process)
+                paramsValidation.ClockSkew = TimeSpan.Zero;
+            });
+
+            // Enables the use of the token as a means of
+            // authorizing access to this project's resources
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme‌)
+                    .RequireAuthenticatedUser().Build());
+            });
+
+            #endregion
+
+            #region MVC
 
             services.AddMvc(options =>
             {
@@ -69,11 +107,20 @@ namespace RestWithASPNETUdemy
                 options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
             }).AddXmlSerializerFormatters();
 
+            #endregion
+
+            #region HATEOS
+
             var filterOptions = new HyperMediaFilterOptions();
             filterOptions.ObjectContentResponseEnricherList.Add(new PersonEnricher());
             services.AddSingleton(filterOptions);
 
+            #endregion
+
+            // API Versioning
 			services.AddApiVersioning(option => option.ReportApiVersions = true);
+
+            #region SWAGGER
 
             services.AddSwaggerGen(c =>
             {
@@ -85,13 +132,44 @@ namespace RestWithASPNETUdemy
                     });
             });
 
-            //Dependency Injection Business
+            #endregion
+
+            #region DEPENDENCY INJECTION
+
+            //Business
             services.AddScoped<IPersonBusiness, PersonBusinessImpl>();
             services.AddScoped<IBookBusiness, BookBusinessImpl>();
+            services.AddScoped<ILoginBusiness, LoginBusinessImpl>();
             
-            //Dependency Injection Repository
-            services.AddScoped<IPersonRepository, PersonRepositoryImpl>();
+            //Repository
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IUserRepository, UserRepositoryImpl>();
+
+            #endregion
+        }
+
+        private void ExecuteMigrations(string connectionString)
+        {
+            if (_environment.IsDevelopment())
+            {
+                try
+                {
+                    var evolveConnection = new MySql.Data.MySqlClient.MySqlConnection(connectionString);
+
+                    var evolve = new Evolve.Evolve("evolve.json", evolveConnection, msg => _logger.LogInformation(msg))
+                    {
+                        Locations = new List<string> {"db/migrations"},
+                        IsEraseDisabled = true,
+                    };
+
+                    evolve.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical("Database migration failed.", ex);
+                    throw;
+                }
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

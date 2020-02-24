@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RestWithASPNETUdemy.Model.Base;
 
 namespace RestWithASPNETUdemy.Model.Context
 {
@@ -17,5 +18,6 @@ namespace RestWithASPNETUdemy.Model.Context
 
         public DbSet<Person> Persons { get; set; }
         public DbSet<Book> Books { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
