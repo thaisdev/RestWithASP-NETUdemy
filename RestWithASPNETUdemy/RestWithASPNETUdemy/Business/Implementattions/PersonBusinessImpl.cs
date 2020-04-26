@@ -8,10 +8,10 @@ namespace RestWithASPNETUdemy.Business.Implementattions
     public class PersonBusinessImpl : IPersonBusiness
     {
 
-        private readonly IRepository<Person> _repository;
+        private readonly IPersonRepository _repository;
         private readonly PersonConverter _converter;
 
-        public PersonBusinessImpl(IRepository<Person> repository)
+        public PersonBusinessImpl(IPersonRepository repository)
         {
             _repository = repository;
             _converter = new PersonConverter();
@@ -32,6 +32,11 @@ namespace RestWithASPNETUdemy.Business.Implementattions
         public List<PersonVO> FindAll()
         {
             return _converter.ParseList(_repository.FindAll());
+        }
+
+        public List<PersonVO> FindByName(string firstName, string lastName)
+        {
+            return _converter.ParseList(_repository.FindByName(firstName, lastName));
         }
 
         public PersonVO Update(PersonVO person)

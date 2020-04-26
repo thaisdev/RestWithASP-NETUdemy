@@ -144,6 +144,7 @@ namespace RestWithASPNETUdemy
             //Repository
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUserRepository, UserRepositoryImpl>();
+            services.AddScoped<IPersonRepository, PersonRepositoryImpl>();
 
             #endregion
         }
