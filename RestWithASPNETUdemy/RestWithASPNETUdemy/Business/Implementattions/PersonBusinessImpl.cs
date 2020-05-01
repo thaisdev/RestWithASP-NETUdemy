@@ -2,6 +2,7 @@
 using RestWithASPNETUdemy.Business.Generic;
 using RestWithASPNETUdemy.Data.Converters;
 using RestWithASPNETUdemy.Model;
+using Tapioca.HATEOAS.Utils;
 
 namespace RestWithASPNETUdemy.Business.Implementattions
 {
@@ -49,6 +50,28 @@ namespace RestWithASPNETUdemy.Business.Implementattions
         public void Delete(long id)
         {
             _repository.Delete(id);
+        }
+
+        public PagedSearchDTO<PersonVO> FindWithPagedSearch(string name, string sortDirection, int pageSize, int page)
+        {
+            page = page > 0 ? page - 1 : 0; 
+            string query = @"select * from persons p";
+            if (!string.IsNullOrEmpty(name)) query += $" where p.FirstName like '%{name}%'";
+            query += $" order by p.FirstName {sortDirection} limit {pageSize} offset {page}";
+            
+            string countQuery = @"select count(*) from persons p";
+            if (!string.IsNullOrEmpty(name)) countQuery += $" where p.FirstName like '%{name}%'";
+            
+            var persons = _converter.ParseList(_repository.FindWithPagedSearch(query));
+            int totalResults = _repository.GetCount(countQuery);
+            return new PagedSearchDTO<PersonVO>
+            {
+                CurrentPage = page + 1,
+                List = persons,
+                PageSize = pageSize,
+                SortDirections = sortDirection,
+                TotalResults = totalResults
+            };
         }
     }
 }

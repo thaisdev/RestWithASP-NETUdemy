@@ -76,6 +76,28 @@ namespace RestWithASPNETUdemy.Business.Generic
             }
         }
 
+        public List<T> FindWithPagedSearch(string query)
+        {
+            return dataset.FromSql<T>(query).ToList();
+        }
+        
+        public int GetCount(string query)
+        {
+            var result = "";
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+                    result = command.ExecuteScalar().ToString();
+                }
+            }
+
+            return Int32.Parse(result);
+        }
+
         private bool Exists(long? id)
         {
             return dataset.Any(b => b.Id.Equals(id));
