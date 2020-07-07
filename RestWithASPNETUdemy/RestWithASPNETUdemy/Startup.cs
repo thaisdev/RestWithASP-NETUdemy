@@ -140,6 +140,7 @@ namespace RestWithASPNETUdemy
             services.AddScoped<IPersonBusiness, PersonBusinessImpl>();
             services.AddScoped<IBookBusiness, BookBusinessImpl>();
             services.AddScoped<ILoginBusiness, LoginBusinessImpl>();
+            services.AddScoped<IFileBusiness, FileBusinessImpl>();
             
             //Repository
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
