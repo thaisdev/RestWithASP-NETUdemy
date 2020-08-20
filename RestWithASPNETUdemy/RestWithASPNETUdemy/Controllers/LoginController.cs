@@ -2,6 +2,8 @@
 using RestWithASPNETUdemy.Model;
 using RestWithASPNETUdemy.Business;
 using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Net;
 
 namespace RestWithASPNETUdemy.Controllers
 {
@@ -21,8 +23,18 @@ namespace RestWithASPNETUdemy.Controllers
         [HttpPost]
         public object Post([FromBody]UserVO user)
         {
-            if (user == null) return BadRequest();
-            return _loginBusiness.FindByLogin(user);
+            try
+            {
+                if (user == null) return BadRequest();
+                return _loginBusiness.FindByLogin(user);
+            } 
+            catch (Exception e)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new
+                {
+                    message = e.Message + "/n" + e.InnerException?.Message
+                });
+            }
         }
     }
 }

@@ -160,7 +160,7 @@ namespace RestWithASPNETUdemy
 
                     var evolve = new Evolve.Evolve("evolve.json", evolveConnection, msg => _logger.LogInformation(msg))
                     {
-                        Locations = new List<string> {"db/migrations"},
+                        Locations = new List<string> { "db/migrations" },
                         IsEraseDisabled = true,
                     };
 
